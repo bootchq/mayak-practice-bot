@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Практика — Маяк</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Экран: Календарь -->
+  <div id="screen-calendar" class="screen active">
+    <header>
+      <div class="header-nav">
+        <button id="prev-month" class="nav-btn">←</button>
+        <span id="month-label" class="month-label"></span>
+        <button id="next-month" class="nav-btn">→</button>
+      </div>
+    </header>
+    <div id="calendar-grid" class="calendar-grid"></div>
+  </div>
+
+  <!-- Экран: Слоты дня -->
+  <div id="screen-slots" class="screen">
+    <header>
+      <button id="back-to-calendar" class="back-btn">← назад</button>
+      <span id="slots-date-label" class="date-label"></span>
+    </header>
+    <div id="slots-list" class="slots-list"></div>
+  </div>
+
+  <!-- Модал: Выбор роли -->
+  <div id="modal-role" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-title">ВЫБЕРИ РОЛЬ</div>
+      <div id="role-slot-info" class="role-slot-info"></div>
+      <div id="role-buttons" class="role-buttons"></div>
+      <button id="modal-cancel" class="btn-ghost">отмена</button>
+    </div>
+  </div>
+
+  <!-- Тост -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

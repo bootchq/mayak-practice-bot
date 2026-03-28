@@ -1,0 +1,410 @@
+/* === Маяк — фирменный стиль === */
+
+:root {
+  --red: #DC2626;
+  --black: #171717;
+  --white: #FFFFFF;
+  --gray: #D4D4D4;
+  --muted: #737373;
+  --font: 'IBM Plex Mono', Monaco, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-x: hidden;
+}
+
+/* === Экраны === */
+
+.screen {
+  display: none;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 0 0 32px;
+}
+.screen.active { display: flex; }
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--gray);
+}
+
+/* === Шапка календаря === */
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.month-label {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--black);
+}
+
+.nav-btn {
+  background: none;
+  border: 1px solid var(--gray);
+  color: var(--black);
+  font-family: var(--font);
+  font-size: 16px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s;
+}
+.nav-btn:hover { border-color: var(--black); }
+
+/* === Сетка календаря === */
+
+.calendar-grid {
+  padding: 16px 20px;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.weekday-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 0;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.day-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+  cursor: default;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.day-cell.has-slots {
+  color: var(--black);
+  font-weight: 600;
+  border: 1px solid var(--black);
+  cursor: pointer;
+}
+
+.day-cell.has-slots:hover,
+.day-cell.has-slots:active {
+  background: var(--black);
+  color: var(--white);
+}
+
+.day-cell.today {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.day-cell.today.has-slots {
+  border-color: var(--red);
+}
+
+.day-cell.today.has-slots:hover,
+.day-cell.today.has-slots:active {
+  background: var(--red);
+  color: var(--white);
+}
+
+.day-cell.empty { visibility: hidden; }
+
+/* === Шапка слотов === */
+
+.back-btn {
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  padding: 0;
+}
+.back-btn:hover { color: var(--black); }
+
+.date-label {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* === Список слотов === */
+
+.slots-list {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slot-card {
+  border: 1px solid var(--gray);
+  padding: 16px;
+}
+
+.slot-time {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--black);
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.slot-roles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.role-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.role-name {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.role-status {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.role-status.taken { color: var(--muted); }
+.role-status.free { color: var(--red); }
+.role-status.mine { color: var(--black); }
+.role-status.viewer-count { color: var(--muted); }
+
+.btn-book {
+  width: 100%;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-book:hover { background: var(--red); }
+
+.btn-cancel {
+  width: 100%;
+  background: none;
+  color: var(--muted);
+  border: 1px solid var(--gray);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 8px;
+}
+.btn-cancel:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.my-role-badge {
+  display: inline-block;
+  background: var(--black);
+  color: var(--white);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  margin-left: 6px;
+}
+
+/* === Модал === */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 23, 23, 0.7);
+  display: flex;
+  align-items: flex-end;
+  z-index: 100;
+}
+.modal.hidden { display: none; }
+
+.modal-card {
+  background: var(--white);
+  width: 100%;
+  padding: 28px 20px 36px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.role-slot-info {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  letter-spacing: 0.03em;
+}
+
+.role-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn-role {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: 1px solid var(--black);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 14px 16px;
+  cursor: pointer;
+  color: var(--black);
+  transition: all 0.15s;
+}
+.btn-role:hover:not(:disabled) {
+  background: var(--black);
+  color: var(--white);
+}
+.btn-role:disabled {
+  border-color: var(--gray);
+  color: var(--gray);
+  cursor: not-allowed;
+}
+.btn-role.viewer-role {
+  border-color: var(--gray);
+  color: var(--muted);
+  font-weight: 400;
+}
+.btn-role.viewer-role:hover {
+  background: var(--gray);
+  color: var(--black);
+}
+
+.role-tag {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.btn-role:disabled .role-tag { color: var(--gray); }
+
+.btn-ghost {
+  width: 100%;
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 8px;
+  letter-spacing: 0.04em;
+}
+
+/* === Тост === */
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 12px 20px;
+  letter-spacing: 0.03em;
+  z-index: 200;
+  white-space: nowrap;
+  transition: opacity 0.3s;
+}
+.toast.hidden { display: none; }
+.toast.error { background: var(--red); }
+
+/* === Загрузка === */
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+
+.empty-state {
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  line-height: 1.8;
+}
