@@ -7,14 +7,13 @@ import json
 import os
 import urllib.parse
 import urllib.request
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 import sys
+import traceback
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import sheets_db as db
 
@@ -27,6 +26,20 @@ ROLE_LABELS = {"coach": "коуч", "client": "клиент", "curator": "кур
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+
+@app.get("/api/health")
+async def health():
+    import platform
+    return {
+        "ok": True,
+        "python": platform.python_version(),
+        "bot_token_set": bool(BOT_TOKEN),
+        "admin_id": ADMIN_ID,
+        "webapp_url": WEBAPP_URL,
+        "spreadsheet_id": os.environ.get("SPREADSHEET_ID", "")[:10] + "...",
+        "sa_json_set": bool(os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")),
+    }
 
 
 def verify_telegram_data(init_data: str) -> dict | None:
@@ -160,11 +173,15 @@ async def webhook(request: Request):
         if len(parts) < 3:
             tg_send(chat_id, "Формат: /newslot YYYY-MM-DD HH:MM HH:MM ...")
         else:
-            created = db.create_slots(parts[1], parts[2:])
-            if created:
-                tg_send(chat_id, f"Создано {len(created)} слота(ов) на {parts[1]}: {', '.join(s['time'] for s in created)}")
-            else:
-                tg_send(chat_id, "Слоты уже существуют.")
+            try:
+                created = db.create_slots(parts[1], parts[2:])
+                if created:
+                    tg_send(chat_id, f"Создано {len(created)} слота(ов) на {parts[1]}: {', '.join(s['time'] for s in created)}")
+                else:
+                    tg_send(chat_id, "Слоты уже существуют.")
+            except Exception as e:
+                print(f"ERROR /newslot: {traceback.format_exc()}")
+                tg_send(chat_id, f"Ошибка: {str(e)[:200]}")
 
     elif text.startswith("/list") and is_admin:
         parts = text.split()
