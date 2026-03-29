@@ -8,6 +8,23 @@ if (tg) {
 const initData = tg?.initData || "";
 const currentUser = tg?.initDataUnsafe?.user || { id: 0, first_name: "Dev" };
 
+// Если открыто вне Telegram — показать инструкцию
+if (!tg || !initData) {
+  document.body.innerHTML = `
+    <div style="font-family:'IBM Plex Mono',monospace;padding:40px 24px;max-width:400px;margin:0 auto">
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.02em;margin-bottom:16px">МАЯК</div>
+      <div style="font-size:14px;color:#737373;line-height:1.8;margin-bottom:32px">
+        Это Telegram Mini App.<br>
+        Открой через бота:
+      </div>
+      <a href="https://t.me/kouch_sessii_109_bot"
+         style="display:block;background:#171717;color:#fff;text-decoration:none;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:14px 20px;text-align:center">
+        ОТКРЫТЬ БОТА
+      </a>
+    </div>
+  `;
+}
+
 // === Состояние ===
 let state = {
   year: new Date().getFullYear(),
