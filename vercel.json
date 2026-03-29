@@ -1,11 +1,16 @@
 {
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" },
-    { "source": "/(.*)", "destination": "/webapp/$1" }
-  ],
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "webapp/**",
+      "use": "@vercel/static"
     }
-  }
+  ],
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/(.*)", "destination": "/webapp/$1" }
+  ]
 }
