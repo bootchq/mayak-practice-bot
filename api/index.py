@@ -19,7 +19,7 @@ import sheets_db as db
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 ADMIN_ID = int(os.environ.get("ADMIN_ID", "0"))
-WEBAPP_URL = os.environ.get("WEBAPP_URL", "")
+WEBAPP_URL = os.environ.get("WEBAPP_URL", "").strip()
 
 ROLE_LABELS = {"coach": "коуч", "client": "клиент", "curator": "куратор", "viewer": "зритель"}
 
