@@ -76,14 +76,22 @@ def get_user(request: Request) -> dict:
         raise HTTPException(status_code=401, detail="Неверная подпись Telegram")
 
 
-def tg_send(chat_id: int, text: str):
+def tg_send(chat_id: int, text: str, reply_markup: dict = None):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    data = json.dumps({"chat_id": chat_id, "text": text}).encode()
+    payload = {"chat_id": chat_id, "text": text}
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    data = json.dumps(payload).encode()
     req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
     try:
-        urllib.request.urlopen(req, timeout=5)
-    except Exception:
-        pass
+        urllib.request.urlopen(req, timeout=10)
+    except Exception as e:
+        print(f"ERROR tg_send: {e}")
+
+
+def tg_send_keyboard(chat_id: int):
+    keyboard = {"inline_keyboard": [[{"text": "📅 Записаться на практику", "web_app": {"url": WEBAPP_URL}}]]}
+    tg_send(chat_id, "Привет! Здесь можно записаться на практические сессии Маяка.\n\nНажми кнопку, выбери день и слот.", keyboard)
 
 
 # --- API endpoints ---
@@ -140,7 +148,11 @@ async def cancel(slot_id: int, request: Request):
 
 @app.post("/api/webhook")
 async def webhook(request: Request):
-    body = await request.json()
+    try:
+        body = await request.json()
+    except Exception:
+        return {"ok": True}
+
     message = body.get("message") or body.get("edited_message")
     if not message:
         return {"ok": True}
@@ -150,66 +162,60 @@ async def webhook(request: Request):
     user_id = message["from"]["id"]
     is_admin = user_id == ADMIN_ID
 
-    if text.startswith("/start"):
-        keyboard = {"inline_keyboard": [[{"text": "📅 Записаться на практику", "web_app": {"url": WEBAPP_URL}}]]}
-        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-        data = json.dumps({"chat_id": chat_id, "text": "Привет! Здесь можно записаться на практические сессии Маяка.\n\nНажми кнопку, выбери день и слот.", "reply_markup": keyboard}).encode()
-        req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-        try:
-            urllib.request.urlopen(req, timeout=5)
-        except Exception:
-            pass
+    try:
+        if text.startswith("/start"):
+            tg_send_keyboard(chat_id)
 
-    elif text.startswith("/my"):
-        bookings = db.get_user_bookings(user_id)
-        if not bookings:
-            tg_send(chat_id, "У тебя нет активных записей.")
-        else:
-            lines = ["Твои записи:\n"] + [f"• {b['date']} {b['time']} — {ROLE_LABELS[b['role']]}" for b in bookings]
-            tg_send(chat_id, "\n".join(lines))
+        elif text.startswith("/my"):
+            bookings = db.get_user_bookings(user_id)
+            if not bookings:
+                tg_send(chat_id, "У тебя нет активных записей.")
+            else:
+                lines = ["Твои записи:\n"] + [f"• {b['date']} {b['time']} — {ROLE_LABELS[b['role']]}" for b in bookings]
+                tg_send(chat_id, "\n".join(lines))
 
-    elif text.startswith("/newslot") and is_admin:
-        parts = text.split()
-        if len(parts) < 3:
-            tg_send(chat_id, "Формат: /newslot YYYY-MM-DD HH:MM HH:MM ...")
-        else:
-            try:
+        elif text.startswith("/newslot") and is_admin:
+            parts = text.split()
+            if len(parts) < 3:
+                tg_send(chat_id, "Формат: /newslot YYYY-MM-DD HH:MM HH:MM ...")
+            else:
                 created = db.create_slots(parts[1], parts[2:])
                 if created:
                     tg_send(chat_id, f"Создано {len(created)} слота(ов) на {parts[1]}: {', '.join(s['time'] for s in created)}")
                 else:
                     tg_send(chat_id, "Слоты уже существуют.")
-            except Exception as e:
-                print(f"ERROR /newslot: {traceback.format_exc()}")
-                tg_send(chat_id, f"Ошибка: {str(e)[:200]}")
 
-    elif text.startswith("/list") and is_admin:
-        parts = text.split()
-        if len(parts) < 2:
-            tg_send(chat_id, "Формат: /list YYYY-MM-DD")
-        else:
-            bookings = db.get_bookings_by_date(parts[1])
-            if not bookings:
-                tg_send(chat_id, f"На {parts[1]} записей нет.")
+        elif text.startswith("/list") and is_admin:
+            parts = text.split()
+            if len(parts) < 2:
+                tg_send(chat_id, "Формат: /list YYYY-MM-DD")
             else:
-                by_time = {}
-                for b in bookings:
-                    by_time.setdefault(b["time"], []).append(b)
-                lines = [f"Записи на {parts[1]}:\n"]
-                for t in sorted(by_time):
-                    lines.append(f"🕐 {t}")
-                    for b in by_time[t]:
-                        name = b["full_name"] or b["username"] or str(b["user_id"])
-                        lines.append(f"  • {ROLE_LABELS[b['role']]} — {name}")
-                tg_send(chat_id, "\n".join(lines))
+                bookings = db.get_bookings_by_date(parts[1])
+                if not bookings:
+                    tg_send(chat_id, f"На {parts[1]} записей нет.")
+                else:
+                    by_time = {}
+                    for b in bookings:
+                        by_time.setdefault(b["time"], []).append(b)
+                    lines = [f"Записи на {parts[1]}:\n"]
+                    for t in sorted(by_time):
+                        lines.append(f"🕐 {t}")
+                        for b in by_time[t]:
+                            name = b["full_name"] or b["username"] or str(b["user_id"])
+                            lines.append(f"  • {ROLE_LABELS[b['role']]} — {name}")
+                    tg_send(chat_id, "\n".join(lines))
 
-    elif text.startswith("/noshow") and is_admin:
-        parts = text.split()
-        if len(parts) < 2:
-            tg_send(chat_id, "Формат: /noshow USER_ID")
-        else:
-            target_id = int(parts[1])
-            tg_send(target_id, "Привет. Ты был(а) записан(а) на практику, но не пришёл(ла).\n\nПомни о договорённости — неявка предполагает донат в благотворительный фонд.")
-            tg_send(chat_id, f"Сообщение отправлено пользователю {target_id}.")
+        elif text.startswith("/noshow") and is_admin:
+            parts = text.split()
+            if len(parts) < 2:
+                tg_send(chat_id, "Формат: /noshow USER_ID")
+            else:
+                target_id = int(parts[1])
+                tg_send(target_id, "Привет. Ты был(а) записан(а) на практику, но не пришёл(ла).\n\nПомни о договорённости — неявка предполагает донат в благотворительный фонд.")
+                tg_send(chat_id, f"Сообщение отправлено пользователю {target_id}.")
+
+    except Exception:
+        print(f"ERROR webhook: {traceback.format_exc()}")
+        tg_send(chat_id, "Произошла ошибка. Попробуй позже.")
 
     return {"ok": True}
